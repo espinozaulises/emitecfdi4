@@ -39,9 +39,11 @@ namespace CFDi40
         private string fDecMon = "{0:0.00}";
         private List<ComplementoImpuestoDRObj> oImpuestosDRList = new List<ComplementoImpuestoDRObj>();
 
-        /**
-        * <summary>Recibe unn objeto con los datos del comprobante. Recibe los documentos relacionados, los UUID separados por coma(,).</summary>
-        */
+        /// <summary>Recibe un objeto con los datos del comprobante. Además recibe el UUID de los documentos relacionados, y el tipo de relación.
+        /// <param name="comprobanteObj">Objeto con los datos del comprobante</param>
+        /// <param name="UUIDRel">UUID de los documentos relacionados, separados por comas</param>
+        /// <param name="tipRel">Tipo de relación entre los documentos relacionados</param>
+        /// </summary>
         public void DatosComprobante(Comprobante comprobanteObj, string UUIDRel = "", string tipRel = "")
         {
             objComprobante = comprobanteObj;
@@ -63,18 +65,34 @@ namespace CFDi40
             objComprobante.CfdiRelacionados = _listCfdiRelacionados.ToArray();
 
         }
+
+        /// <summary>Asigna los datos del emisor al objeto de comprobante.
+        /// <param name="emisor">Objeto con los datos del emisor</param>
+        /// </summary>
         public void DatosEmisor(ComprobanteEmisor emisor)
         {
             objComprobante.Emisor = emisor;
         }
+
+        /// <summary>Asigna los datos del receptor al objeto de comprobante.
+        /// <param name="receptorObj">Objeto con los datos del receptor</param>
+        /// </summary>
         public void DatosReceptor(ComprobanteReceptor receptorObj)
         {
             objComprobante.Receptor = receptorObj;
         }
 
-        /**
-        * <summary>Agrega un concepto sin impuestos</summary>
-        */
+        /// <summary>Asigna los datos del emisor al objeto de comprobante.
+        /// <param name="emisor">Objeto con los datos del emisor</param>
+        /// </summary>
+        public void AgregarDatosCFDIGlobal(ComprobanteInformacionGlobal informacionGlobal)
+        {
+            objComprobante.InformacionGlobal = informacionGlobal;
+        }
+
+        /// <summary>Agrega un concepto al objeto de comprobante. Puede incluir impuestos trasladados y retenidos.
+        /// <param name="concepto">Objeto con los datos del concepto</param>
+        /// </summary>
         public void AgregaConcepto(ComprobanteConcepto concepto)
         {
             bool hayImpuestoConcepto = false;
@@ -98,9 +116,10 @@ namespace CFDi40
             _listConceptos.Add(concepto);
         }
 
-        /**
-        * <summary>Agrega un concepto con impuestos trasladados</summary>
-        */
+        /// <summary>Agrega un concepto al objeto de comprobante con impuestos trasladados específicos.
+        /// <param name="concepto">Objeto con los datos del concepto</param>
+        /// <param name="cImpuestosTraslado">Lista de objetos con los impuestos trasladados específicos del concepto</param>
+        /// </summary>
         public void AgregaConcepto(ComprobanteConcepto concepto, List<ComprobanteConceptoImpuestosTraslado> cImpuestosTraslado)
         {
             ComprobanteConceptoImpuestos impuestosConceptos = new ComprobanteConceptoImpuestos();
@@ -114,9 +133,10 @@ namespace CFDi40
             _listConceptos.Add(concepto);
         }
 
-        /**
-        * <summary>Agrega un concepto con impuestos retenidos</summary>
-        */
+        /// <summary>Agrega un concepto al objeto de comprobante con impuestos retenidos específicos.
+        /// <param name="concepto">Objeto con los datos del concepto</param>
+        /// <param name="cImpuestosRetencion">Lista de objetos con los impuestos retenidos específicos del concepto</param>
+        /// </summary>
         public void AgregaConcepto(ComprobanteConcepto concepto, List<ComprobanteConceptoImpuestosRetencion> cImpuestosRetencion)
         {
             ComprobanteConceptoImpuestos impuestosConceptos = new ComprobanteConceptoImpuestos();
@@ -130,9 +150,11 @@ namespace CFDi40
             _listConceptos.Add(concepto);
         }
 
-        /**
-        * <summary>Agrega un concepto con impuestos trasladados y retenidos</summary>
-        */
+        /// <summary>Agrega un concepto al objeto de comprobante con impuestos trasladados y retenidos específicos.
+        /// <param name="concepto">Objeto con los datos del concepto</param>
+        /// <param name="cImpuestosTraslado">Impuestos traslados específicos del concepto</param>
+        /// <param name="cImpuestosRetencion">Impuestos retenidos específicos del concepto</param>
+        /// </summary>
         public void AgregaConcepto(ComprobanteConcepto concepto, List<ComprobanteConceptoImpuestosTraslado> cImpuestosTraslado, List<ComprobanteConceptoImpuestosRetencion> cImpuestosRetencion)
         {
             if (cImpuestosTraslado.Any() && !concepto.ObjetoImp.Equals("01"))
@@ -150,11 +172,13 @@ namespace CFDi40
             _listConceptos.Add(concepto);
         }
 
+        /// <summary>Asigna los conceptos al objeto de comprobante</summary>
         private void DatosConceptos()
         {
             objComprobante.Conceptos = _listConceptos.ToArray();
         }
 
+        /// <summary>Genera los impuestos totales a partir de los impuestos en los conceptos</summary>
         private void GeneraImpuestosTotales()
         {
             List<ComprobanteImpuestosTraslado> listTImpuestosTraslados = new List<ComprobanteImpuestosTraslado>();
@@ -173,7 +197,7 @@ namespace CFDi40
             /*
              * Optenemos una llave para identificar los distintos impuestos en los concceptos
              */
-            ComprobanteConcepto[] conceptos = objComprobante.Conceptos;
+        ComprobanteConcepto[] conceptos = objComprobante.Conceptos;
             int i = 0;
             foreach (ComprobanteConcepto concepto in conceptos)
             {
@@ -271,13 +295,13 @@ namespace CFDi40
                 }
             }
 
-            if(totalImpuestosTrasladados > 0)
+            if(listTImpuestosTraslados.Count > 0)
             {
                 _comprobanteImpuestos.TotalImpuestosTrasladados = String.Format(fDecMon, Math.Round(totalImpuestosTrasladados, decimalesMoneda, MidpointRounding.AwayFromZero));
                 _comprobanteImpuestos.TotalImpuestosTrasladadosSpecified = true;
                 _comprobanteImpuestos.Traslados = listTImpuestosTraslados.ToArray();
             }
-            if(totalImpuestosRetenidos > 0)
+            if(listTImpuestosRetenidos.Count > 0)
             {
                 _comprobanteImpuestos.TotalImpuestosRetenidos = String.Format(fDecMon, Math.Round(totalImpuestosRetenidos, decimalesMoneda, MidpointRounding.AwayFromZero));
                 _comprobanteImpuestos.TotalImpuestosRetenidosSpecified = true;
@@ -288,6 +312,7 @@ namespace CFDi40
 
         }
 
+        /// <summary>Genera el XML a partir de los objetos previamente llenados.</summary>
         public string GeneraXML()
         {
             string sXml = "";
@@ -348,10 +373,13 @@ namespace CFDi40
             return sXml;
         }
 
+        /// <summary>
+        /// Crea el XML del comprobante.
+        /// <param name="oComprobante">El objeto comprobante con los datos del CFDI.</param>
+        /// <returns>Un string con el XML del comprobante.</returns>
+        /// </summary>
         private string CreateXML(Comprobante oComprobante)
         {
-            //SERIALIZAMOS.-------------------------------------------------
-
             XmlSerializerNamespaces xmlNameSpace = new XmlSerializerNamespaces();
             xmlNameSpace.Add("cfdi", "http://www.sat.gob.mx/cfd/4");
             xmlNameSpace.Add("tfd", "http://www.sat.gob.mx/TimbreFiscalDigital");
@@ -380,10 +408,13 @@ namespace CFDi40
             }
 
             return sXml;
-            //guardamos el string en un archivo
-            //System.IO.File.WriteAllText(pathXML, sXml);
         }
 
+        /// <summary>
+        /// Genera la cadena original del comprobante.
+        /// <param name="sXml">El string del XML del comprobante.</param>
+        /// <returns>La cadena original del comprobante.</returns>
+        /// </summary>
         public string GeneraCadenaOriginal(string sXml)
         {
             string cadenaOriginal = "";
@@ -402,7 +433,12 @@ namespace CFDi40
 
             return cadenaOriginal;
         }
-#region "GENERACIÓN DE COMPLEMENTOS DE PAGOS"
+        #region "GENERACIÓN DE COMPLEMENTOS DE PAGOS"
+        /// <summary>
+        /// Agrega un pago al comprobante.
+        /// <param name="pagosPago">Los detalles del pago.</param>
+        /// <param name="pagoTotales">Los totales del pago.</param>
+        /// </summary>
         public void AgregaPago(PagosPago pagosPago, PagosTotales pagoTotales)
         {
             listPagos.Add(pagosPago);
@@ -410,12 +446,21 @@ namespace CFDi40
             objPagos.Totales = pagoTotales;
         }
 
-        public void AgregaImpuestosDRPago(ref PagosPagoDoctoRelacionado oPagoDR, string sXml)
+        /// <summary>
+        /// Agrega los impuestos del documento relacionado al pago.
+        /// <param name="oPagoDR">El objeto del documento relacionado del pago.</param>
+        /// <param name="sXml">El string del XML del comprobante.</param>
+        /// </summary>
+        public void AgregaImpuestosDRPago(ref PagosPagoDoctoRelacionado oPagoDR, string sXml, decimal impPagado)
         {
-            oPagoDR.ImpuestosDR = ObtieneImpuestosDR(sXml);
+            oPagoDR.ImpuestosDR = ObtieneImpuestosDR(sXml, impPagado);
         }
-
-        private PagosPagoDoctoRelacionadoImpuestosDR ObtieneImpuestosDR(string sXml)
+        /// <summary>
+        /// Obtiene los impuestos del documento relacionado.
+        /// <param name="sXml">El string del XML del comprobante.</param>
+        /// <returns>Una lista con los impuestos del documento relacionado.</returns>
+        /// </summary>
+        private PagosPagoDoctoRelacionadoImpuestosDR ObtieneImpuestosDR(string sXml, decimal impPagado)
         {
             List<PagosPagoDoctoRelacionadoImpuestosDRTrasladoDR> listTrasladosDR = new List<PagosPagoDoctoRelacionadoImpuestosDRTrasladoDR>();
             List<PagosPagoDoctoRelacionadoImpuestosDRRetencionDR> listRetencionesDR = new List<PagosPagoDoctoRelacionadoImpuestosDRRetencionDR>();
@@ -431,6 +476,14 @@ namespace CFDi40
 
             nsMgr.AddNamespace("ns", nsUri);
             XmlNodeList traNodeList = xDoc.SelectNodes("ns:Comprobante/ns:Impuestos/ns:Traslados/ns:Traslado", nsMgr);
+            XmlNode comprobanteNode = xDoc.SelectSingleNode("ns:Comprobante", nsMgr);
+            decimal totalCFDI = decimal.Parse(comprobanteNode.Attributes["Total"].InnerText);
+            decimal proporcion = 1;
+
+            if (impPagado < totalCFDI)
+            {
+                 proporcion = impPagado / totalCFDI;
+            }
 
             foreach (XmlNode xNode in traNodeList)
             {
@@ -440,17 +493,19 @@ namespace CFDi40
                 decimal baseDr = Decimal.Zero;
                 decimal taOCu = decimal.Parse(xNode.Attributes["TasaOCuota"].InnerText);
                 decimal impoDr = decimal.Parse(xNode.Attributes["Importe"].InnerText);
-                if(Decimal.Compare(taOCu, Decimal.Zero) > 0 )   {
-                    baseDr = impoDr / taOCu;
+                decimal impoDrProp = Math.Round(impoDr * proporcion, 2, MidpointRounding.AwayFromZero);
+                if (Decimal.Compare(taOCu, Decimal.Zero) > 0 )   {
+                    baseDr = Math.Round(impoDrProp / taOCu, 2, MidpointRounding.AwayFromZero);
                 }   else    {
                     baseDr = obtieneBaseCFDITasa0(xDoc, nsMgr);
+                    baseDr = Math.Round(baseDr * proporcion, 2, MidpointRounding.AwayFromZero);
                 }
                 
                 trasladoDR.ImpuestoDR = xNode.Attributes["Impuesto"].InnerText;
                 trasladoDR.TipoFactorDR = xNode.Attributes["TipoFactor"].InnerText;
                 trasladoDR.TasaOCuotaDR = taOCu;
                 trasladoDR.TasaOCuotaDRSpecified = true;
-                trasladoDR.ImporteDR = impoDr;
+                trasladoDR.ImporteDR = impoDrProp;
                 trasladoDR.BaseDR = Math.Round(baseDr, 2, MidpointRounding.AwayFromZero);
 
                 listTrasladosDR.Add(trasladoDR);
@@ -486,6 +541,11 @@ namespace CFDi40
             objComprobante.Complemento.Any[0] = docPago.DocumentElement;
         }
 
+        /// <summary>
+        /// Obtiene la Base del total de impuestos trasladados ya sea que esta no exista (cuando el CFDI es 3.3) o bien para que el calculo sea exacto y cumplir con las validaciones
+        /// <param name="xDoc">El xmlDocument del CFDI Relacionado.</param>
+        /// <returns>El valor de la base correspondiente a los impuestos Totales del CFDI Relacionado.</returns>
+        /// </summary>
         private decimal obtieneBaseCFDITasa0(XmlDocument xDoc, XmlNamespaceManager nsMgr)
         {
             string tasaOCuota;
@@ -578,6 +638,11 @@ namespace CFDi40
             return pagosPagoImpuestosP;
         }
 
+        /// <summary>
+        /// Genera los totales de los impuestos de los pagos, para el complemento de pagos, de acuerdo a la especificación del SAT.
+        /// </summary>
+        /// <param name="oImpuestosP"> </param>
+        /// <returns></returns>
         public PagosTotales GeneraTotalesPago(PagosPagoImpuestosP oImpuestosP)
         {
             PagosTotales oTotalesPago = new PagosTotales();
@@ -644,6 +709,8 @@ namespace CFDi40
 
             return oTotalesPago;
         }
+
+
 
 #endregion
         public string PathCer { get => pathCer; set => pathCer = value; }
